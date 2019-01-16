@@ -1,0 +1,6 @@
+ntp_packages: 
+  - ntp
+  - ntpdate
+
+ntp_service: ntp
+ntp_conf_dir: /etc

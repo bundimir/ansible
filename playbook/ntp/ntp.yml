@@ -1,0 +1,46 @@
+- hosts: all
+  name: First ntp play
+  become: true
+  vars:
+    ntpactive: "absent"
+
+  tasks:
+    - name: Ensure ntp is installed
+      apt: 
+        name: ntp
+        state: "{{ ntpactive }}"
+
+    - name: Ensure ntp.conf is placed
+      template:
+        src: ntp.conf.j2
+        dest: /etc/ntp.conf
+      notify: restart ntp
+      when: ntpactive == "present"
+
+    - name: Ensure service is running and autostart
+      service:
+        name: ntp
+        state: started
+        enabled: true
+      when: ntpactive == "present"
+
+    - name: Ensure service is removed
+      apt:
+        name: ntp
+        state: "{{ ntpactive }}"
+      when: ntpactive == "absent"
+    
+    - name: Remove ntp.cfg file when ntp not installed
+      file:
+        path: /etc/ntp.conf
+        state: absent
+      when: ntpactive != "present"
+
+  handlers:
+    - name: restart ntp
+      service:
+        name: ntp
+        state: restarted
+
+
+

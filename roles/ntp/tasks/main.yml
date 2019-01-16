@@ -1,0 +1,42 @@
+---
+# tasks file for ntp  
+    - name: Load variables per OS
+      include_vars: "{{ ansible_os_family }}.yml"
+      tags: always
+
+    - name: Ensure ntp is installed
+      apt: 
+        name: "{{ ntp_packages }}"
+        state: "{{ ntpactive }}"
+      tags: one
+
+    - name: Ensure ntp.conf is placed
+      template:
+        src: ntp.conf.j2
+        dest: "{{ ntp_conf_dir }}/ntp.conf"
+      notify: restart ntp
+      tags: 
+        - one
+        - two
+      when: ntpactive == "present"
+
+    - name: Ensure service is running and autostart
+      service:
+        name: "{{ ntp_service }}"
+        state: started
+        enabled: true
+      when: ntpactive == "present"
+
+    - name: Ensure service is removed
+      apt:
+        name: ntp
+        state: "{{ ntpactive }}"
+      when: ntpactive == "absent"
+    
+    - name: Remove ntp.cfg file when ntp not installed
+      file:
+        path: /etc/ntp.conf
+        state: absent
+      when: ntpactive != "present"
+
+
